@@ -1,149 +1,122 @@
-🚀 Production-Grade Fraud Detection System (MLOps + Cloud)
 
-End-to-end, production-ready ML system for credit card fraud detection with experiment tracking, cloud deployment, observability, and data drift monitoring — built following 2026 MLOps standards.
+#  Production-Grade Fraud Detection System (MLOps + Cloud)
 
-🔍 Why This Project Matters
+> **End-to-end, production-ready ML system** for credit card fraud detection with experiment tracking, cloud deployment, observability, and data drift monitoring — built following 2026 MLOps standards.
+
+---
+
+##  Why This Project Matters
 
 Most ML projects stop at training a model.
 
-This project goes all the way to production:
+This one goes **all the way to production**:
+- Model training with imbalanced data handling
+- Experiment tracking & model registry
+- Containerized inference API
+- Cloud deployment (AWS)
+- Observability with Prometheus
+- Data drift detection with Evidently AI
 
-Model training with severe class imbalance
+This mirrors how **real ML systems are built and maintained in production**.
 
-Experiment tracking & model registry
+---
 
-Containerized inference API
+##  Dataset Used
 
-Cloud deployment on AWS
-
-Observability with Prometheus metrics
-
-Data drift detection using Evidently AI
-
-This mirrors how real-world ML systems are built, deployed, and maintained.
-
-This project was built end-to-end by a single engineer to simulate real production ML workflows.
-
-📊 Dataset Used
-
-Kaggle Credit Card Fraud Dataset
 https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud
 
-~284,000 transactions
 
-~0.2% fraud cases
+##  Problem Statement
 
-Highly imbalanced, real-world distribution
-
-❗ Problem Statement
-
-Credit card fraud detection is a highly imbalanced classification problem:
-
-~99.8% legitimate transactions
-
-~0.2% fraudulent transactions
+Credit card fraud detection is a **highly imbalanced classification problem**:
+- ~99.8% legitimate transactions
+- ~0.2% fraudulent transactions
 
 Using accuracy alone is misleading.
 
-This system focuses on:
+This system focuses on **Precision-Recall tradeoffs**, **AUPRC**, and **threshold tuning**, which are critical in real-world fraud systems.
 
-Precision–Recall tradeoffs
+---
 
-AUPRC (Area Under Precision-Recall Curve)
+##  System Architecture
 
-Threshold tuning for cost-sensitive decisions
-
-🏗️ System Architecture
 Raw Data (CSV)
-   ↓
+↓
 Exploration & Training
-   ↓
+↓
 MLflow (Experiments + Model Registry)
-   ↓
+↓
 Production Model (Joblib)
-   ↓
+↓
 FastAPI Inference Service
-   ↓
+↓
 Docker Container
-   ↓
+↓
 AWS ECR → AWS App Runner
-   ↓
+↓
 Monitoring & Drift Detection
 
-🧰 Tech Stack
-Machine Learning
 
-Scikit-learn (Logistic Regression)
+---
 
-Class imbalance handling (class_weight="balanced")
+##  Tech Stack
 
-Precision / Recall / F1 / AUPRC optimization
+**Machine Learning**
+- Scikit-learn (Logistic Regression with class weighting)
+- Precision / Recall / F1 / AUPRC optimization
 
-MLOps
+**MLOps**
+- MLflow (experiment tracking + model registry)
+- Docker (containerization)
+- Evidently AI (data drift detection)
 
-MLflow (experiment tracking + model registry)
+**Backend & Infra**
+- FastAPI (inference API)
+- AWS ECR + AWS App Runner
+- Prometheus metrics
 
-Docker (containerization)
+**Testing**
+- Pytest (API-level tests)
 
-Evidently AI (data drift detection)
+---
 
-Backend & Infrastructure
+##  Model Training Highlights
 
-FastAPI (inference API)
+- **Stratified train/validation split**
+- **Class imbalance handled using `class_weight="balanced"`**
+- **Threshold tuning** to control false positives
+- **Primary metric:** AUPRC (not accuracy)
 
-AWS ECR + AWS App Runner
+Example baseline results:
+- **Recall:** ~0.91
+- **AUPRC:** ~0.71
+- **Production threshold:** 0.9 (cost-sensitive decision)
 
-Prometheus-compatible metrics
+All experiments are tracked in **MLflow**.
 
-Testing
+---
 
-Pytest (API-level tests)
+## 🧪 Experiment Tracking (MLflow)
 
-🧠 Model Training Highlights
-
-Stratified train/validation split
-
-Explicit handling of class imbalance
-
-Threshold tuning to control false positives
-
-Primary metric: AUPRC (not accuracy)
-
-Baseline results:
-
-Recall: ~0.91
-
-AUPRC: ~0.71
-
-Production threshold: 0.9
-
-All experiments and metrics are tracked using MLflow.
-
-🧪 Experiment Tracking (MLflow)
-
-MLflow is used to:
-
-Track hyperparameters and metrics
-
-Version trained models
-
-Maintain a model registry for production
+This project uses MLflow to:
+- Track parameters & metrics
+- Version trained models
+- Register production-ready models
 
 Artifacts logged:
+- Metrics (Precision, Recall, F1, AUPRC)
+- Model binaries
+- Threshold decisions
 
-Precision, Recall, F1-score, AUPRC
+---
 
-Model binaries
+##  Inference API
 
-Threshold configuration
-
-🔮 Inference API
-🔹 Prediction Endpoint
-
+### Prediction
 POST /predict
+Content-Type: application/json
 
-Request Body
-
+### Request Body
 {
   "Time": 0.0,
   "V1": 0.1,
@@ -153,84 +126,66 @@ Request Body
   "Amount": 100.0
 }
 
-
-Response
-
+### Response
 {
   "fraud_probability": 0.0297,
   "fraud_prediction": 0,
   "threshold_used": 0.9
 }
 
-🔹 Health Check
+### Health Check
+
 GET /health
 
-📈 Observability (Production Monitoring)
+
+
+ Observability (Production Monitoring)
 
 The API exposes Prometheus-compatible metrics:
 
 GET /metrics
 
-
 Tracked metrics:
-
 Request count (by endpoint & status)
-
 Request latency
-
 Fraud prediction counts
-
 Error rates (4xx / 5xx)
+This enables real-time monitoring in Grafana or CloudWatch.
 
-This enables real-time monitoring via Grafana or CloudWatch.
+ Data Drift Detection
 
-📉 Data Drift Detection
-
-To detect changing data distributions:
-
+To handle changing data distributions:
 Reference dataset sampled from training data
-
 Current dataset simulated from new incoming data
+Drift report generated using Evidently AI
 
-Drift analysis generated using Evidently AI
-
-Outputs:
+Output:
 
 Interactive HTML drift report
-
 Feature-level drift statistics
-
 Dataset-level drift summary
+This reflects real “Day-2” ML operations.
 
-This reflects real Day-2 ML operations.
-
-☁️ Cloud Deployment (AWS)
+ Cloud Deployment (AWS)
 
 Docker image pushed to Amazon ECR
-
 Deployed using AWS App Runner
-
 Public inference endpoint exposed
-
-Cost controlled within free-tier limits
+Cost controlled under free-tier limits
 
 Demonstrates:
 
 Cloud-native ML deployment
-
 IAM-based access control
-
 Production container workflows
 
-🧪 Testing
+ Testing
 
-Basic API tests implemented using Pytest:
-
-Health endpoint validation
-
+Basic API tests included using Pytest:
+Health endpoint test
 Prediction endpoint validation
 
-📁 Project Structure
+📂 Project Structure
 fraud-detection-mlops/
 │
 ├── training/               # Data exploration & model training
@@ -247,29 +202,23 @@ fraud-detection-mlops/
 ├── requirements.txt
 └── README.md
 
-✅ What This Project Demonstrates
+ What This Demonstrates
 
-Building ML systems beyond notebooks
+This project shows ability to:
+Build ML systems beyond notebooks
+Think in terms of production, monitoring, and maintenance
+Use cloud infrastructure responsibly
+Handle real-world ML challenges (imbalance, drift, observability)
 
-Production thinking (monitoring, drift, retraining readiness)
-
-Cloud deployment with cost awareness
-
-Handling real-world ML challenges
-
-🔮 Planned Improvements
+ Next Improvements (Planned)
 
 Automated retraining pipeline triggered by drift
-
 RAG-based transaction explanation agent
-
 CI/CD integration for model promotion
-
 Cost-aware threshold optimization
 
-👤 Author
+ Author
 
 Vedant Konade
 Final-year IT student | AI / MLOps Engineer
-
 Built to production standards, not academic demos.
