@@ -1,31 +1,59 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from pydantic import BaseModel
 import mlflow
-import pandas as pd
-import numpy as np
 from pathlib import Path
 from joblib import load
+import time
+
+from prometheus_client import (
+    Counter,
+    Histogram,
+    generate_latest,
+    CONTENT_TYPE_LATEST
+)
 
 
-# Use the SAME backend as training
+# MLflow setup (same as training)
+
 mlflow.set_tracking_uri("sqlite:///mlflow.db")
 mlflow.set_registry_uri("sqlite:///mlflow.db")
-# App setup
+
+
+# FastAPI app
 
 app = FastAPI(title="Fraud Detection API")
 
 
-# Load model from MLflow registry
+# Prometheus metrics
+
+REQUEST_COUNT = Counter(
+    "http_requests_total",
+    "Total HTTP requests",
+    ["method", "endpoint", "status"]
+)
+
+REQUEST_LATENCY = Histogram(
+    "http_request_latency_seconds",
+    "Request latency",
+    ["endpoint"]
+)
+
+PREDICTION_COUNT = Counter(
+    "fraud_predictions_total",
+    "Fraud predictions",
+    ["prediction"]
+)
+
+
+# Load model
 
 MODEL_PATH = Path(__file__).resolve().parents[1] / "models" / "production" / "model.joblib"
 model = load(MODEL_PATH)
 
-# Chosen production threshold
 THRESHOLD = 0.9
 
 
-
-# Input schema
+# Input schema (TOP LEVEL)
 
 class Transaction(BaseModel):
     Time: float
@@ -59,24 +87,61 @@ class Transaction(BaseModel):
     V28: float
     Amount: float
 
+#  REQUIRED for Pydantic v2 + FastAPI
+Transaction.model_rebuild()
+
+
 # Health check
 
 @app.get("/health")
 def health():
+    REQUEST_COUNT.labels("GET", "/health", "200").inc()
     return {"status": "ok"}
-
 
 
 # Prediction endpoint
 
 @app.post("/predict")
-def predict(transaction: Transaction):
-    data = pd.DataFrame([transaction.dict()])
-    prob = model.predict_proba(data)[0][1]
-    prediction = int(prob >= THRESHOLD)
+def predict(data: Transaction):
+    start_time = time.time()
+    endpoint = "/predict"
 
-    return {
-        "fraud_probability": round(float(prob), 4),
-        "fraud_prediction": prediction,
-        "threshold_used": THRESHOLD
-    }
+    try:
+        X = [[
+            data.Time, data.V1, data.V2, data.V3, data.V4, data.V5,
+            data.V6, data.V7, data.V8, data.V9, data.V10, data.V11,
+            data.V12, data.V13, data.V14, data.V15, data.V16, data.V17,
+            data.V18, data.V19, data.V20, data.V21, data.V22, data.V23,
+            data.V24, data.V25, data.V26, data.V27, data.V28, data.Amount
+        ]]
+
+        prob = model.predict_proba(X)[0][1]
+        prediction = int(prob >= THRESHOLD)
+
+        PREDICTION_COUNT.labels(str(prediction)).inc()
+        REQUEST_COUNT.labels("POST", endpoint, "200").inc()
+
+        return {
+            "fraud_probability": round(prob, 4),
+            "fraud_prediction": prediction,
+            "threshold_used": THRESHOLD
+        }
+
+    except Exception:
+        REQUEST_COUNT.labels("POST", endpoint, "500").inc()
+        raise
+
+    finally:
+        REQUEST_LATENCY.labels(endpoint).observe(
+            time.time() - start_time
+        )
+
+
+# Prometheus metrics endpoint
+
+@app.get("/metrics")
+def metrics():
+    return Response(
+        generate_latest(),
+        media_type=CONTENT_TYPE_LATEST
+    )
