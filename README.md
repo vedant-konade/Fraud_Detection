@@ -134,16 +134,16 @@ Content-Type: application/json
 }
 
 ### Health Check
-```http
+
 GET /health
 
 
 
- Observability (Production Monitoring)
+## Observability (Production Monitoring)
 
 The API exposes Prometheus-compatible metrics:
 
-GET /metrics
+### GET /metrics
 
 Tracked metrics:
 Request count (by endpoint & status)
@@ -152,40 +152,41 @@ Fraud prediction counts
 Error rates (4xx / 5xx)
 This enables real-time monitoring in Grafana or CloudWatch.
 
- Data Drift Detection
+## Data Drift Detection
 
 To handle changing data distributions:
 Reference dataset sampled from training data
 Current dataset simulated from new incoming data
 Drift report generated using Evidently AI
 
-Output:
+## Output:
 
 Interactive HTML drift report
 Feature-level drift statistics
 Dataset-level drift summary
 This reflects real “Day-2” ML operations.
 
- Cloud Deployment (AWS)
+##Cloud Deployment (AWS)
 
 Docker image pushed to Amazon ECR
 Deployed using AWS App Runner
 Public inference endpoint exposed
 Cost controlled under free-tier limits
 
-Demonstrates:
+## Demonstrates:
 
 Cloud-native ML deployment
 IAM-based access control
 Production container workflows
 
- Testing
+ ## Testing
 
 Basic API tests included using Pytest:
 Health endpoint test
 Prediction endpoint validation
 
 📂 Project Structure
+```http
 fraud-detection-mlops/
 │
 ├── training/               # Data exploration & model training
@@ -202,7 +203,8 @@ fraud-detection-mlops/
 ├── requirements.txt
 └── README.md
 
- What This Demonstrates
+```
+ ## What This Demonstrates
 
 This project shows ability to:
 Build ML systems beyond notebooks
@@ -210,15 +212,15 @@ Think in terms of production, monitoring, and maintenance
 Use cloud infrastructure responsibly
 Handle real-world ML challenges (imbalance, drift, observability)
 
- Next Improvements (Planned)
+ ## Next Improvements (Planned)
 
 Automated retraining pipeline triggered by drift
 RAG-based transaction explanation agent
 CI/CD integration for model promotion
 Cost-aware threshold optimization
 
- Author
+ ## Author
 
 Vedant Konade
-Final-year IT student | AI / MLOps Engineer
+Final-year IT student |MLOps Engineer
 Built to production standards, not academic demos.
